@@ -4,6 +4,10 @@ class Token(list):
         super().__init__(*args)
         self.attrs = {k.lower() if len(k) == 1 else k: v for k, v in kwargs.items()}
 
+    @property
+    def name(self):
+        return self.__class__.__name__
+
     def __str__(self):
         names = [x.__class__.__name__ for x in self]
         return f'{self.__class__.__name__} {names}'
