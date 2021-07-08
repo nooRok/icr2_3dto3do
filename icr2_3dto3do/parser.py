@@ -90,7 +90,7 @@ def parse(tokens):  # iterator
             elif type_ in [SWITCH]:
                 assert next(tokens) == 'DISTANCE'
                 swt_attrs = {'origin': next(parse(tokens))[0], 'symbol': next(tokens)}
-                swt_values = [v[:3] for v in next(parse(tokens))]
+                swt_values = next(parse(tokens))
                 yield type_(swt_values, **swt_attrs)
             elif type_ in [FACE, BSPA, BSPF, BSPN]:  # FACE2, BSP2
                 bsp_attr = {'bsp': next(parse(tokens))}
