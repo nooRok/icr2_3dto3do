@@ -111,7 +111,8 @@ def parse(tokens):  # iterator
             yield Value(values[0], **attrs)
         elif token in '({':
             yield [*parse(tokens)]
-            return
+            if token == '{':
+                return
         elif token in '>])}':
             return
         elif token in ',=':
