@@ -22,7 +22,7 @@ def main():
     # print(args)
 
     c = Converter.open_3d(args.input)
-    fs = c.build_flavors(args.root, args.hash)
+    fs = c.build_flavors(args.root, track_hash=args.hash)
     m = Model()
     m.header.files = c.get_files()
     with m.body.flavors as flavors:

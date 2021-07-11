@@ -126,7 +126,7 @@ class Converter:
         else:
             raise NotImplementedError(def_)
 
-    def build_flavors(self, root: str, track_hash=''):
+    def build_flavors(self, root: str, *, track_hash=''):
         self.track_hash = track_hash
         self._build_flavor(self.definitions[root])
         return self.flavors
