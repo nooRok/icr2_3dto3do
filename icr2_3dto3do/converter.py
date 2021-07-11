@@ -17,6 +17,7 @@ class Converter:
     def __init__(self, definitions):
         self.definitions = definitions  # dict from .3d file
         self.track_hash = ''
+        self.scaling_factor = 1.0
         self.flavors = {0: build_flavor(0, 0)}
         self.mips = {}
         self.pmps = {}  # NotImplemented
