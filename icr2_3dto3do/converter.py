@@ -56,7 +56,7 @@ class Converter:
             type_ = 2 if def_.attrs.get('t') else 1
             if type_ == 2:
                 # name = attrs['MIP']  # from MATERIAL MIP = "xxx"
-                group = int(attrs.get('GROUP', 8))  # from MATERIAL GROUP = n
+                group = int(attrs_.get('GROUP', 8))  # from MATERIAL GROUP = n
                 tex_flag = _texture_flags.get(group, group)  # default: 8(tso)
                 v1 = [tex_flag] + v1
             return self.store_flavor(type_, v1, vf_offsets)
