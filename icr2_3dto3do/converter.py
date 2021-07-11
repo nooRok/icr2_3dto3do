@@ -85,7 +85,8 @@ class Converter:
             if self.is_track() and isinstance(def_, FACE):
                 return self._build_flavor(def_[0], **attrs_)
             bsp_attr = [self._get_value(v) for v in def_.attrs['bsp']]
-            bsp = BspValues.from_coordinates(*bsp_attr)
+            bsp_coords = [val * self.scaling_factor for val in bsp_attr]
+            bsp = BspValues.from_coordinates(*bsp_coords)
             v2 = [self._build_flavor(c, **attrs_) for c in def_]
             v2 = [v2[0]] + v2[1:][::-1]
             return self.store_flavor(def_.type, bsp, v2)  # [v2[0]] + v2[1:][::-1])
