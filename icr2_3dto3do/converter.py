@@ -66,7 +66,7 @@ class Converter:
             return 0  # NIL
         elif isinstance(def_, SWITCH):
             origin = def_.attrs['origin']
-            origin_o = self.store_flavor(0, self._get_value(origin))
+            origin_o = self._store_vertex_flavor(self._get_value(origin))
             dd_pairs = [(v[0], v[2]) for v in def_]  # [(distance, def/def_name), ...]
             do_pairs = [(int(d), self._build_flavor(o, **attrs_))
                         for d, o in dd_pairs]  # [(distance, offset), ...]
