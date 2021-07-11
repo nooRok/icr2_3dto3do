@@ -121,7 +121,7 @@ class Converter:
             f15_name = def_.attrs['EXTERN']  # .strip('"')
             f15_index = self.f15s.setdefault(f15_name, len(self.f15s))
             f15values = [*map(int, def_[:6])]
-            loc = f15values[:3]
+            loc = Value(f15values[:3]) * self.scaling_factor
             rot = [to_papy_degree(x / 10.0) for x in f15values[3:7]]
             v1 = loc + rot + [~f15_index]
             flavor = self.store_flavor(15, v1)
