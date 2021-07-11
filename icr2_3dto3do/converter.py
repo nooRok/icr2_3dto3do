@@ -50,11 +50,8 @@ class Converter:
         if isinstance(def_, NIL):
             return 0
         elif isinstance(def_, POLY):
-            vf_offsets = []
-            for v in [self._get_value(v) for v in def_]:
-                v1 = v[:]  # F1
-                v2 = v.attrs.get('t', [])[:]
-                vf_offsets.append(self.store_flavor(0, v1, v2))
+            vertices = (self._get_value(v) for v in def_)
+            vf_offsets = [self._store_vertex_flavor(vtx, vtx.attrs.get('t')) for vtx in vertices]
             color_name = def_.attrs['color_name']
             color_idx = self._get_value(color_name)
             v1 = [color_idx if isinstance(color_idx, int) else color_idx[0], len(vf_offsets) - 1]
