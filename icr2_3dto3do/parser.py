@@ -93,7 +93,9 @@ def parse(tokens):  # iterator
                 swt_values = next(parse(tokens))
                 yield type_(swt_values, **swt_attrs)
             elif type_ in [FACE, BSPA, BSPF, BSPN]:  # FACE2, BSP2
-                bsp_attr = {'bsp': next(parse(tokens))}
+                bsp_ = next(parse(tokens))
+                assert len(bsp_) == 3
+                bsp_attr = {'bsp': bsp_}
                 bsp_values = [next(parse(tokens)) for _ in range(type_.size)]
                 yield type_(bsp_values, **bsp_attr)
             elif type_ in [LIST]:
