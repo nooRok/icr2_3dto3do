@@ -34,6 +34,10 @@ class Converter:
         self.flavors[offset] = flavor
         return offset
 
+    def _store_vertex_flavor(self, v1, v2=None):
+        assert isinstance(v1, Value)
+        return self.store_flavor(0, v1 * self.scaling_factor, v2 or [])
+
     def _get_value(self, key):
         if isinstance(key, str):
             return self.definitions[key]
