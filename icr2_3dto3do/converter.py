@@ -99,17 +99,17 @@ class Converter:
                 assert all(len(f.values2) == 8 for f in f11fs)  # 7 + F17offset(1)
                 f17fs = [self.flavors.pop(f11f.values2.pop()) for f11f in f11fs]
                 pairs = [p for p in zip(f11fs, f17fs)]
-                f11c = []
+                f11os = []
                 # F11/F17 pairs = hashes tail + hashes main + hashes head
                 for f11, f17 in pairs + pairs + pairs:
                     f11o = self.store_flavor(11, [7], f11.values2)
                     f17o = self.store_flavor(17, f17.values1)
                     self.flavors[f17o].parents.append(f11o)
-                    f11c.append(f11o)
-                root_f11o = self.store_flavor(11, [len(f11c)], f11c)
+                    f11os.append(f11o)
+                root_f11o = self.store_flavor(11, [len(f11os)], f11os)
                 # hash F11 takes offsets of hashes main
-                hash_ = [root_f11o] + [f11c[i + len(pairs)] for i in map(int, self.definitions[self.track_hash])]
-                return self.store_flavor(11, [len(hash_)], hash_)
+                hash_v2 = [root_f11o] + [f11os[i + len(pairs)] for i in map(int, self.definitions[self.track_hash])]
+                return self.store_flavor(11, [len(hash_v2)], hash_v2)
             f11c = [self._build_flavor(x, **attrs_) for x in def_]
             return self.store_flavor(11, [len(f11c)], f11c)
         elif isinstance(def_, DYNO):
