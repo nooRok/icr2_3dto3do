@@ -108,7 +108,8 @@ class Converter:
                     f11os.append(f11o)
                 root_f11o = self.store_flavor(11, [len(f11os)], f11os)
                 # hash F11 takes offsets of hashes main
-                hash_v2 = [root_f11o] + [f11os[i + len(pairs)] for i in map(int, self.definitions[self.track_hash])]
+                hash_os = f11os[len(pairs):-len(pairs)]
+                hash_v2 = [root_f11o] + [hash_os[int(i)] for i in self.definitions[self.track_hash]]
                 return self.store_flavor(11, [len(hash_v2)], hash_v2)
             f11c = [self._build_flavor(x, **attrs_) for x in def_]
             return self.store_flavor(11, [len(f11c)], f11c)
