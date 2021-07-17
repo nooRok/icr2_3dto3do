@@ -22,6 +22,7 @@ class Converter:
         self.mips = {}
         self.pmps = {}  # NotImplemented
         self.f15s = {}
+        self.offsets = {}  # def name: offset
 
     def is_track(self):
         return bool(self.track_hash)
@@ -45,7 +46,11 @@ class Converter:
 
     def _build_flavor(self, def_, **attrs):
         if isinstance(def_, str):
-            return self._build_flavor(self.definitions[def_], **attrs)
+            if def_ in self.offsets:
+                return self.offsets[def_]
+            offset = self._build_flavor(self.definitions[def_], **attrs)
+            self.offsets[def_] = offset
+            return offset
         attrs_ = {**attrs, **def_.attrs}
         if isinstance(def_, NIL):
             return 0
