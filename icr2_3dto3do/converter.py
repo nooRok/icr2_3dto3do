@@ -1,6 +1,6 @@
 # coding: utf-8
 from icr2model.flavor import build_flavor
-from icr2model.flavor.flavor import VertexFlavor
+from icr2model.flavor.flavor import VertexFlavor, F17
 from icr2model.flavor.value.unit import to_papy_degree
 from icr2model.flavor.value.values import BspValues
 from . import parser
@@ -105,6 +105,7 @@ class Converter:
                 f11fs = [self.flavors.pop(f11o_) for f11o_ in f11offsets]
                 assert all(len(f.values2) == 8 for f in f11fs)  # 7 + F17offset(1)
                 f17fs = [self.flavors.pop(f11f.values2.pop()) for f11f in f11fs]
+                assert all(isinstance(f, F17) for f in f17fs)
                 pairs = [p for p in zip(f11fs, f17fs)]
                 f11os = []
                 ex_len = len(pairs) // self.lod_divisor
