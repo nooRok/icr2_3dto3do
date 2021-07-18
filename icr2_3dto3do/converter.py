@@ -106,17 +106,17 @@ class Converter:
                 assert all(len(f.values2) == 8 for f in f11fs)  # 7 + F17offset(1)
                 f17fs = [self.flavors.pop(f11f.values2.pop()) for f11f in f11fs]
                 pairs = [p for p in zip(f11fs, f17fs)]
-                f11c = []
+                f11os = []
                 ex_len = len(pairs) // self.lod_divisor
                 # F11/F17 pairs = hashes tail + hashes main + hashes head
                 for f11, f17 in pairs[-ex_len:] + pairs + pairs[:ex_len]:
                     f11o = self.store_flavor(11, [7], f11.values2)
                     f17o = self.store_flavor(17, f17.values1)
                     self.flavors[f17o].parents.append(f11o)
-                    f11c.append(f11o)
-                root_f11o = self.store_flavor(11, [len(f11c)], f11c)
+                    f11os.append(f11o)
+                root_f11o = self.store_flavor(11, [len(f11os)], f11os)
                 # hash F11 takes offsets of hashes main
-                hash_ = [root_f11o] + [f11c[i + ex_len] for i in map(int, self.definitions[self.track_hash])]
+                hash_ = [root_f11o] + [f11os[i + ex_len] for i in map(int, self.definitions[self.track_hash])]
                 return self.store_flavor(11, [len(hash_)], hash_)
             f11c = [self._build_flavor(x, **attrs_) for x in def_]
             return self.store_flavor(11, [len(f11c)], f11c)
