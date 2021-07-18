@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='icr2_3dto3do',
-    version='0.1.2rc2',
+    version='0.1.2',
     packages=find_packages(exclude=['tests']),
     url='https://github.com/nooRok/icr2_3dto3do',
     license='MIT',
