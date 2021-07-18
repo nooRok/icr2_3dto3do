@@ -14,6 +14,8 @@ _texture_flags = {0: 1,  # asphalt
 
 
 class Converter:
+    lod_divisor = 2
+
     def __init__(self, definitions):
         self.definitions = definitions  # dict from .3d file
         self.track_hash = ''
