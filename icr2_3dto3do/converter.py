@@ -98,7 +98,7 @@ class Converter:
             v2 = [v2[0]] + v2[1:][::-1]
             return self.store_flavor(def_.type, bsp, v2)  # [v2[0]] + v2[1:][::-1])
         elif isinstance(def_, LIST):
-            if self.is_track() and self.track_hash in def_:
+            if self.is_track() and self.track_hash in self.definitions and self.track_hash in def_:
                 assert def_[0] == self.track_hash
                 # build F11/F17 flavors -> pop F11/F17 flavors -> make new F11/F17 pairs
                 f11offsets = [self._build_flavor(v, **attrs_) for v in def_[1:]]
@@ -117,7 +117,7 @@ class Converter:
                 root_f11o = self.store_flavor(11, [len(f11os)], f11os)
                 # hash F11 takes offsets of hashes main
                 hash_os = f11os[ex_len:]
-                hash_def = map(int, self.definitions[self.track_hash])
+                hash_def = map(int, self.definitions.pop(self.track_hash))
                 hash_v2 = [root_f11o] + [hash_os[i] for i in hash_def]
                 return self.store_flavor(11, [len(hash_v2)], hash_v2)
             f11c = [self._build_flavor(x, **attrs_) for x in def_]
