@@ -17,10 +17,12 @@ class Converter:
     def __init__(self, definitions):
         self.definitions = definitions  # dict from .3d file
         self.track_hash = ''
+        self.scaling_factor = 1.0
         self.flavors = {0: build_flavor(0, 0)}
         self.mips = {}
         self.pmps = {}  # NotImplemented
         self.f15s = {}
+        self.offsets = {}  # def name: offset
 
     def is_track(self):
         return bool(self.track_hash)
@@ -33,6 +35,10 @@ class Converter:
         self.flavors[offset] = flavor
         return offset
 
+    def _store_vertex_flavor(self, v1, v2=None):
+        assert isinstance(v1, Value)
+        return self.store_flavor(0, v1 * self.scaling_factor, v2 or [])
+
     def _get_value(self, key):
         if isinstance(key, str):
             return self.definitions[key]
@@ -40,16 +46,17 @@ class Converter:
 
     def _build_flavor(self, def_, **attrs):
         if isinstance(def_, str):
-            return self._build_flavor(self.definitions[def_], **attrs)
+            if def_ in self.offsets:
+                return self.offsets[def_]
+            offset = self._build_flavor(self.definitions[def_], **attrs)
+            self.offsets[def_] = offset
+            return offset
         attrs_ = {**attrs, **def_.attrs}
         if isinstance(def_, NIL):
             return 0
         elif isinstance(def_, POLY):
-            vf_offsets = []
-            for v in [self._get_value(v) for v in def_]:
-                v1 = v[:]  # F1
-                v2 = v.attrs.get('t', [])[:]
-                vf_offsets.append(self.store_flavor(0, v1, v2))
+            vertices = (self._get_value(v) for v in def_)
+            vf_offsets = [self._store_vertex_flavor(vtx, vtx.attrs.get('t')) for vtx in vertices]
             color_name = def_.attrs['color_name']
             color_idx = self._get_value(color_name)
             v1 = [color_idx if isinstance(color_idx, int) else color_idx[0], len(vf_offsets) - 1]
@@ -64,9 +71,9 @@ class Converter:
             return 0  # NIL
         elif isinstance(def_, SWITCH):
             origin = def_.attrs['origin']
-            origin_o = self.store_flavor(0, self._get_value(origin))
-            dd_pairs = [(v[0], v[2]) for v in def_]  # [(distance, def/def_name), ...]
-            do_pairs = [(int(d), self._build_flavor(o, **attrs_))
+            origin_o = self._store_vertex_flavor(self._get_value(origin))
+            dd_pairs = [(int(v[0]), v[2]) for v in def_]  # [(distance, def/def_name), ...]
+            do_pairs = [(int(d * self.scaling_factor), self._build_flavor(o, **attrs_))
                         for d, o in dd_pairs]  # [(distance, offset), ...]
             v2 = [value for pair in do_pairs for value in pair]  # flatten pairs
             return self.store_flavor(13, [origin_o], v2)
@@ -83,7 +90,8 @@ class Converter:
             if self.is_track() and isinstance(def_, FACE):
                 return self._build_flavor(def_[0], **attrs_)
             bsp_attr = [self._get_value(v) for v in def_.attrs['bsp']]
-            bsp = BspValues.from_coordinates(*bsp_attr)
+            bsp_coords = [val * self.scaling_factor for val in bsp_attr]
+            bsp = BspValues.from_coordinates(*bsp_coords)
             v2 = [self._build_flavor(c, **attrs_) for c in def_]
             v2 = [v2[0]] + v2[1:][::-1]
             return self.store_flavor(def_.type, bsp, v2)  # [v2[0]] + v2[1:][::-1])
@@ -118,7 +126,7 @@ class Converter:
             f15_name = def_.attrs['EXTERN']  # .strip('"')
             f15_index = self.f15s.setdefault(f15_name, len(self.f15s))
             f15values = [*map(int, def_[:6])]
-            loc = f15values[:3]
+            loc = Value(f15values[:3]) * self.scaling_factor
             rot = [to_papy_degree(x / 10.0) for x in f15values[3:7]]
             v1 = loc + rot + [~f15_index]
             flavor = self.store_flavor(15, v1)
@@ -126,8 +134,9 @@ class Converter:
         else:
             raise NotImplementedError(def_)
 
-    def build_flavors(self, root: str, *, track_hash=''):
+    def build_flavors(self, root: str, scaling_factor=1.0, *, track_hash=''):
         self.track_hash = track_hash
+        self.scaling_factor = scaling_factor
         self._build_flavor(self.definitions[root])
         return self.flavors
 

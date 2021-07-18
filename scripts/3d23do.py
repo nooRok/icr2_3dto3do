@@ -16,13 +16,14 @@ def main():
     parser.add_argument('root', help='root object name in *.3d file')
     parser.add_argument('output', nargs='?', default='', help='output *.3do file path')
     parser.add_argument('--hash', default='', help='hash object name (for track)')
+    parser.add_argument('--scale', default=1.0, type=float, help='scaling factor (default=1.0)')
     parser.add_argument('--no-opt', action='store_true', help='disable flavors optimization')
     parser.add_argument('--silent', action='store_true', help="silent mode (don't show output flavors)")
     args = parser.parse_args()
     # print(args)
 
     c = Converter.open_3d(args.input)
-    fs = c.build_flavors(args.root, track_hash=args.hash)
+    fs = c.build_flavors(args.root, args.scale, track_hash=args.hash)
     m = Model()
     m.header.files = c.get_files()
     with m.body.flavors as flavors:
