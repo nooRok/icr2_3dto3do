@@ -100,23 +100,20 @@ class Converter:
         elif isinstance(def_, LIST):
             if self.is_track() and self.track_hash in self.definitions and self.track_hash in def_:
                 assert def_[0] == self.track_hash
-                # build F11/F17 flavors -> pop F11/F17 flavors -> make new F11/F17 pairs
                 f11offsets = [self._build_flavor(v, **attrs_) for v in def_[1:]]
                 f11fs = [self.flavors.pop(f11o_) for f11o_ in f11offsets]
-                assert all(len(f.values2) == 8 for f in f11fs)  # 7 + F17offset(1)
+                assert all(len(f.values2) == 8 for f in f11fs)  # 8: [4 HI] + [2 MED] + [1 LO] + [F17 offset]
                 f17fs = [self.flavors.pop(f11f.values2.pop()) for f11f in f11fs]
                 assert all(isinstance(f, F17) for f in f17fs)
                 pairs = [p for p in zip(f11fs, f17fs)]
-                f11os = []
+                f11os = []  # LOD F11s
                 ex_len = len(pairs) // self.lod_divisor
-                # F11/F17 pairs = hashes tail + hashes main + hashes head
                 for f11, f17 in pairs[-ex_len:] + pairs + pairs[:ex_len]:
                     f11o = self.store_flavor(11, [7], f11.values2)
                     f17o = self.store_flavor(17, f17.values1)
                     self.flavors[f17o].parents.append(f11o)
                     f11os.append(f11o)
-                root_f11o = self.store_flavor(11, [len(f11os)], f11os)
-                # hash F11 takes offsets of hashes main
+                root_f11o = self.store_flavor(11, [len(f11os)], f11os)  # parent of LOD F11s
                 hash_os = f11os[ex_len:]
                 hash_def = map(int, self.definitions.pop(self.track_hash))
                 hash_v2 = [root_f11o] + [hash_os[i] for i in hash_def]
