@@ -107,7 +107,7 @@ class Converter:
                 f17fs = [self.flavors.pop(f11f.values2.pop()) for f11f in f11fs]
                 pairs = [p for p in zip(f11fs, f17fs)]
                 f11c = []
-                ex = len(pairs) // 2  # todo: var
+                ex = len(pairs) // self.lod_divisor
                 # F11/F17 pairs = hashes tail + hashes main + hashes head
                 for f11, f17 in pairs[-ex:] + pairs + pairs[:ex]:
                     f11o = self.store_flavor(11, [7], f11.values2)
