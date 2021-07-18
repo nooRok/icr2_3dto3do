@@ -118,8 +118,8 @@ class Converter:
                 # hash F11 takes offsets of hashes main
                 hash_os = f11os[ex_len:]
                 hash_def = map(int, self.definitions[self.track_hash])
-                hash_ = [root_f11o] + [hash_os[i] for i in hash_def]
-                return self.store_flavor(11, [len(hash_)], hash_)
+                hash_v2 = [root_f11o] + [hash_os[i] for i in hash_def]
+                return self.store_flavor(11, [len(hash_v2)], hash_v2)
             f11c = [self._build_flavor(x, **attrs_) for x in def_]
             return self.store_flavor(11, [len(f11c)], f11c)
         elif isinstance(def_, DYNO):
