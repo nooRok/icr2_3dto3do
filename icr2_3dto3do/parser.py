@@ -12,8 +12,8 @@ _types = {
     'BSPF': BSPF,
     'BSPN': BSPN,
     'BSPA': BSPA,
-    # 'FACE2': FACE2,
-    # 'BSP2': BSP2,
+    'FACE2': FACE2,
+    'BSP2': BSP2,
     'SWITCH': SWITCH,
     'DYNO': DYNO,
     'POLY': POLY,
@@ -92,7 +92,7 @@ def parse(tokens):  # iterator
                 swt_attrs = {'origin': next(parse(tokens))[0], 'symbol': next(tokens)}
                 swt_values = next(parse(tokens))
                 yield type_(swt_values, **swt_attrs)
-            elif type_ in [FACE, BSPA, BSPF, BSPN]:  # FACE2, BSP2
+            elif type_ in [FACE, BSPA, BSPF, BSPN, FACE2, BSP2]:
                 bsp_ = next(parse(tokens))
                 assert len(bsp_) == 3
                 bsp_attr = {'bsp': bsp_}

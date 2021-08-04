@@ -88,7 +88,7 @@ class Converter:
                 return self.store_flavor(4, [mip_index, 0], f04_v2)
             else:
                 return f04_v2[0]
-        elif isinstance(def_, (FACE, BSPA, BSPN, BSPF)):
+        elif isinstance(def_, (FACE, BSPA, BSPN, BSPF, FACE2, BSP2)):
             if self.is_track() and isinstance(def_, FACE):
                 return self._build_flavor(def_[0], **attrs_)
             bsp_attr = [self._get_value(v) for v in def_.attrs['bsp']]
