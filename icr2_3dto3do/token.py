@@ -23,6 +23,10 @@ class LIST(Token):  # F11
     pass
 
 
+class SUPEROBJ(Token):
+    pass
+
+
 class LINE(Token):  # NIL
     pass
 
