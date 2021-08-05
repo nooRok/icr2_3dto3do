@@ -120,6 +120,11 @@ class Converter:
                 return self.store_flavor(11, [len(hash_v2)], hash_v2)
             f11_v2 = [self._build_flavor(x, **attrs_) for x in def_]
             return self.store_flavor(11, [len(f11_v2)], f11_v2)
+        elif isinstance(def_, SUPEROBJ):
+            f16_ptr = def_.attrs['pointer']
+            f16_v1 = [self._build_flavor(f16_ptr, **attrs_)]
+            f16_v2 = [self._build_flavor(c, **attrs_) for c in def_]
+            return self.store_flavor(16, f16_v1 + [len(f16_v2)], f16_v2)
         elif isinstance(def_, DYNO):
             return self.store_flavor(12, map(int, def_))
         elif isinstance(def_, DATA):
