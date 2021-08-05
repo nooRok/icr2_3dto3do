@@ -58,17 +58,17 @@ class Converter:
             return 0
         elif isinstance(def_, POLY):
             vertices = (self._get_value(v) for v in def_)
-            vf_offsets = [self._store_vertex_flavor(vtx, vtx.attrs.get('t')) for vtx in vertices]
+            vtx_v2 = [self._store_vertex_flavor(vtx, vtx.attrs.get('t')) for vtx in vertices]
             color_name = def_.attrs['color_name']
             color_idx = self._get_value(color_name)
-            v1 = [color_idx if isinstance(color_idx, int) else color_idx[0], len(vf_offsets) - 1]
+            vtx_v1 = [color_idx if isinstance(color_idx, int) else color_idx[0], len(vtx_v2) - 1]
             type_ = 2 if def_.attrs.get('t') else 1
             if type_ == 2:
                 # name = attrs['MIP']  # from MATERIAL MIP = "xxx"
                 group = int(attrs_.get('GROUP', 8))  # from MATERIAL GROUP = n
                 tex_flag = _texture_flags.get(group, group)  # default: 8(tso)
-                v1 = [tex_flag] + v1
-            return self.store_flavor(type_, v1, vf_offsets)
+                vtx_v1 = [tex_flag] + vtx_v1
+            return self.store_flavor(type_, vtx_v1, vtx_v2)
         elif isinstance(def_, LINE):
             return 0  # NIL
         elif isinstance(def_, SWITCH):
@@ -77,26 +77,26 @@ class Converter:
             dd_pairs = [(int(v[0]), v[2]) for v in def_]  # [(distance, def/def_name), ...]
             do_pairs = [(int(d * self.scaling_factor), self._build_flavor(o, **attrs_))
                         for d, o in dd_pairs]  # [(distance, offset), ...]
-            v2 = [value for pair in do_pairs for value in pair]  # flatten pairs
-            return self.store_flavor(13, [origin_o], v2)
+            f13_v2 = [value for pair in do_pairs for value in pair]  # flatten pairs
+            return self.store_flavor(13, [origin_o], f13_v2)
         elif isinstance(def_, MATERIAL):
-            v2 = [self._build_flavor(c, **attrs_) for c in def_]
-            assert len(v2) == 1
+            f04_v2 = [self._build_flavor(c, **attrs_) for c in def_]
+            assert len(f04_v2) == 1
             if def_.attrs.get('MIP'):
                 mip_name = def_.attrs['MIP']  # .strip('"')
                 mip_index = self.mips.setdefault(mip_name, len(self.mips))
-                return self.store_flavor(4, [mip_index, 0], v2)
+                return self.store_flavor(4, [mip_index, 0], f04_v2)
             else:
-                return v2[0]
+                return f04_v2[0]
         elif isinstance(def_, (FACE, BSPA, BSPN, BSPF)):
             if self.is_track() and isinstance(def_, FACE):
                 return self._build_flavor(def_[0], **attrs_)
             bsp_attr = [self._get_value(v) for v in def_.attrs['bsp']]
             bsp_coords = [val * self.scaling_factor for val in bsp_attr]
-            bsp = BspValues.from_coordinates(*bsp_coords)
-            v2 = [self._build_flavor(c, **attrs_) for c in def_]
-            v2 = [v2[0]] + v2[1:][::-1]
-            return self.store_flavor(def_.type, bsp, v2)  # [v2[0]] + v2[1:][::-1])
+            bsp_v1 = BspValues.from_coordinates(*bsp_coords)
+            bsp_v2 = [self._build_flavor(c, **attrs_) for c in def_]
+            bsp_v2 = [bsp_v2[0]] + bsp_v2[1:][::-1]
+            return self.store_flavor(def_.type, bsp_v1, bsp_v2)  # [v2[0]] + v2[1:][::-1])
         elif isinstance(def_, LIST):
             if self.is_track() and self.track_hash in self.definitions and self.track_hash in def_:
                 assert def_[0] == self.track_hash
@@ -118,8 +118,8 @@ class Converter:
                 hash_def = map(int, self.definitions.pop(self.track_hash))
                 hash_v2 = [root_f11o] + [hash_os[i] for i in hash_def]
                 return self.store_flavor(11, [len(hash_v2)], hash_v2)
-            f11c = [self._build_flavor(x, **attrs_) for x in def_]
-            return self.store_flavor(11, [len(f11c)], f11c)
+            f11_v2 = [self._build_flavor(x, **attrs_) for x in def_]
+            return self.store_flavor(11, [len(f11_v2)], f11_v2)
         elif isinstance(def_, DYNO):
             return self.store_flavor(12, map(int, def_))
         elif isinstance(def_, DATA):
@@ -130,8 +130,8 @@ class Converter:
             f15values = [*map(int, def_[:6])]
             loc = Value(f15values[:3]) * self.scaling_factor
             rot = [to_papy_degree(x / 10.0) for x in f15values[3:7]]
-            v1 = loc + rot + [~f15_index]
-            flavor = self.store_flavor(15, v1)
+            f15_v1 = loc + rot + [~f15_index]
+            flavor = self.store_flavor(15, f15_v1)
             return flavor
         else:
             raise NotImplementedError(def_)
