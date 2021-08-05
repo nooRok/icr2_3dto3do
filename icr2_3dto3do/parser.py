@@ -20,6 +20,7 @@ _types = {
     'LINE': LINE,
     'MATERIAL': MATERIAL,
     'DYNAMIC': DYNAMIC,
+    'SUPEROBJ': SUPEROBJ
 }
 
 
@@ -98,6 +99,9 @@ def parse(tokens):  # iterator
                 bsp_attr = {'bsp': bsp_}
                 bsp_values = [next(parse(tokens)) for _ in range(type_.size)]
                 yield type_(bsp_values, **bsp_attr)
+            elif type_ in [SUPEROBJ]:
+                f16_attrs = {'pointer': next(parse(tokens))}
+                yield type_(next(parse(tokens)), **f16_attrs)
             elif type_ in [LIST]:
                 yield type_(next(parse(tokens)))
             elif type_ in [DYNO]:
