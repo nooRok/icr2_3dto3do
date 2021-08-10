@@ -1,7 +1,7 @@
 # coding: utf-8
 from icr2model.flavor import build_flavor
-from icr2model.flavor.flavor import VertexFlavor
-from icr2model.flavor.value.unit import to_papy_degree
+from icr2model.flavor.flavor import VertexFlavor, F17
+from icr2model.flavor.value.unit import to_papy_angle
 from icr2model.flavor.value.values import BspValues
 from . import parser
 from .token import *
@@ -14,6 +14,8 @@ _texture_flags = {0: 1,  # asphalt
 
 
 class Converter:
+    lod_divisor = 2
+
     def __init__(self, definitions):
         self.definitions = definitions  # dict from .3d file
         self.track_hash = ''
@@ -56,17 +58,17 @@ class Converter:
             return 0
         elif isinstance(def_, POLY):
             vertices = (self._get_value(v) for v in def_)
-            vf_offsets = [self._store_vertex_flavor(vtx, vtx.attrs.get('t')) for vtx in vertices]
+            vtx_v2 = [self._store_vertex_flavor(vtx, vtx.attrs.get('t')) for vtx in vertices]
             color_name = def_.attrs['color_name']
             color_idx = self._get_value(color_name)
-            v1 = [color_idx if isinstance(color_idx, int) else color_idx[0], len(vf_offsets) - 1]
+            vtx_v1 = [color_idx if isinstance(color_idx, int) else color_idx[0], len(vtx_v2) - 1]
             type_ = 2 if def_.attrs.get('t') else 1
             if type_ == 2:
                 # name = attrs['MIP']  # from MATERIAL MIP = "xxx"
                 group = int(attrs_.get('GROUP', 8))  # from MATERIAL GROUP = n
                 tex_flag = _texture_flags.get(group, group)  # default: 8(tso)
-                v1 = [tex_flag] + v1
-            return self.store_flavor(type_, v1, vf_offsets)
+                vtx_v1 = [tex_flag] + vtx_v1
+            return self.store_flavor(type_, vtx_v1, vtx_v2)
         elif isinstance(def_, LINE):
             return 0  # NIL
         elif isinstance(def_, SWITCH):
@@ -75,49 +77,54 @@ class Converter:
             dd_pairs = [(int(v[0]), v[2]) for v in def_]  # [(distance, def/def_name), ...]
             do_pairs = [(int(d * self.scaling_factor), self._build_flavor(o, **attrs_))
                         for d, o in dd_pairs]  # [(distance, offset), ...]
-            v2 = [value for pair in do_pairs for value in pair]  # flatten pairs
-            return self.store_flavor(13, [origin_o], v2)
+            f13_v2 = [value for pair in do_pairs for value in pair]  # flatten pairs
+            return self.store_flavor(13, [origin_o], f13_v2)
         elif isinstance(def_, MATERIAL):
-            v2 = [self._build_flavor(c, **attrs_) for c in def_]
-            assert len(v2) == 1
+            f04_v2 = [self._build_flavor(c, **attrs_) for c in def_]
+            assert len(f04_v2) == 1
             if def_.attrs.get('MIP'):
                 mip_name = def_.attrs['MIP']  # .strip('"')
                 mip_index = self.mips.setdefault(mip_name, len(self.mips))
-                return self.store_flavor(4, [mip_index, 0], v2)
+                return self.store_flavor(4, [mip_index, 0], f04_v2)
             else:
-                return v2[0]
-        elif isinstance(def_, (FACE, BSPA, BSPN, BSPF)):
+                return f04_v2[0]
+        elif isinstance(def_, (FACE, BSPA, BSPN, BSPF, FACE2, BSP2)):
             if self.is_track() and isinstance(def_, FACE):
                 return self._build_flavor(def_[0], **attrs_)
             bsp_attr = [self._get_value(v) for v in def_.attrs['bsp']]
             bsp_coords = [val * self.scaling_factor for val in bsp_attr]
-            bsp = BspValues.from_coordinates(*bsp_coords)
-            v2 = [self._build_flavor(c, **attrs_) for c in def_]
-            v2 = [v2[0]] + v2[1:][::-1]
-            return self.store_flavor(def_.type, bsp, v2)  # [v2[0]] + v2[1:][::-1])
+            bsp_v1 = BspValues.from_coordinates(*bsp_coords)
+            bsp_v2 = [self._build_flavor(c, **attrs_) for c in def_]
+            bsp_v2 = [bsp_v2[0]] + bsp_v2[1:][::-1]
+            return self.store_flavor(def_.type, bsp_v1, bsp_v2)  # [v2[0]] + v2[1:][::-1])
         elif isinstance(def_, LIST):
-            if self.is_track() and self.track_hash in def_:
+            if self.is_track() and self.track_hash in self.definitions and self.track_hash in def_:
                 assert def_[0] == self.track_hash
-                # build F11/F17 flavors -> pop F11/F17 flavors -> make new F11/F17 pairs
                 f11offsets = [self._build_flavor(v, **attrs_) for v in def_[1:]]
                 f11fs = [self.flavors.pop(f11o_) for f11o_ in f11offsets]
-                assert all(len(f.values2) == 8 for f in f11fs)  # 7 + F17offset(1)
+                assert all(len(f.values2) == 8 for f in f11fs)  # 8: [4 HI] + [2 MED] + [1 LO] + [F17 offset]
                 f17fs = [self.flavors.pop(f11f.values2.pop()) for f11f in f11fs]
+                assert all(isinstance(f, F17) for f in f17fs)
                 pairs = [p for p in zip(f11fs, f17fs)]
-                f11c = []
-                ex = len(pairs) // 2  # todo: var
-                # F11/F17 pairs = hashes tail + hashes main + hashes head
-                for f11, f17 in pairs[-ex:] + pairs + pairs[:ex]:
+                f11os = []  # LOD F11s
+                ex_len = len(pairs) // self.lod_divisor
+                for f11, f17 in pairs[-ex_len:] + pairs + pairs[:ex_len]:
                     f11o = self.store_flavor(11, [7], f11.values2)
                     f17o = self.store_flavor(17, f17.values1)
                     self.flavors[f17o].parents.append(f11o)
-                    f11c.append(f11o)
-                root_f11o = self.store_flavor(11, [len(f11c)], f11c)
-                # hash F11 takes offsets of hashes main
-                hash_ = [root_f11o] + [f11c[i + ex] for i in map(int, self.definitions[self.track_hash])]
-                return self.store_flavor(11, [len(hash_)], hash_)
-            f11c = [self._build_flavor(x, **attrs_) for x in def_]
-            return self.store_flavor(11, [len(f11c)], f11c)
+                    f11os.append(f11o)
+                root_f11o = self.store_flavor(11, [len(f11os)], f11os)  # parent of LOD F11s
+                hash_os = f11os[ex_len:]
+                hash_def = map(int, self.definitions.pop(self.track_hash))
+                hash_v2 = [root_f11o] + [hash_os[i] for i in hash_def]
+                return self.store_flavor(11, [len(hash_v2)], hash_v2)
+            f11_v2 = [self._build_flavor(x, **attrs_) for x in def_]
+            return self.store_flavor(11, [len(f11_v2)], f11_v2)
+        elif isinstance(def_, SUPEROBJ):
+            f16_ptr = def_.attrs['pointer']
+            f16_v1 = [self._build_flavor(f16_ptr, **attrs_)]
+            f16_v2 = [self._build_flavor(c, **attrs_) for c in def_]
+            return self.store_flavor(16, f16_v1 + [len(f16_v2)], f16_v2)
         elif isinstance(def_, DYNO):
             return self.store_flavor(12, map(int, def_))
         elif isinstance(def_, DATA):
@@ -127,9 +134,9 @@ class Converter:
             f15_index = self.f15s.setdefault(f15_name, len(self.f15s))
             f15values = [*map(int, def_[:6])]
             loc = Value(f15values[:3]) * self.scaling_factor
-            rot = [to_papy_degree(x / 10.0) for x in f15values[3:7]]
-            v1 = loc + rot + [~f15_index]
-            flavor = self.store_flavor(15, v1)
+            rot = [to_papy_angle(x / 10.0) for x in f15values[3:7]]
+            f15_v1 = loc + rot + [~f15_index]
+            flavor = self.store_flavor(15, f15_v1)
             return flavor
         else:
             raise NotImplementedError(def_)

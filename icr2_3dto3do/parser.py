@@ -12,14 +12,15 @@ _types = {
     'BSPF': BSPF,
     'BSPN': BSPN,
     'BSPA': BSPA,
-    # 'FACE2': FACE2,
-    # 'BSP2': BSP2,
+    'FACE2': FACE2,
+    'BSP2': BSP2,
     'SWITCH': SWITCH,
     'DYNO': DYNO,
     'POLY': POLY,
     'LINE': LINE,
     'MATERIAL': MATERIAL,
     'DYNAMIC': DYNAMIC,
+    'SUPEROBJ': SUPEROBJ
 }
 
 
@@ -92,12 +93,15 @@ def parse(tokens):  # iterator
                 swt_attrs = {'origin': next(parse(tokens))[0], 'symbol': next(tokens)}
                 swt_values = next(parse(tokens))
                 yield type_(swt_values, **swt_attrs)
-            elif type_ in [FACE, BSPA, BSPF, BSPN]:  # FACE2, BSP2
+            elif type_ in [FACE, BSPA, BSPF, BSPN, FACE2, BSP2]:
                 bsp_ = next(parse(tokens))
                 assert len(bsp_) == 3
                 bsp_attr = {'bsp': bsp_}
                 bsp_values = [next(parse(tokens)) for _ in range(type_.size)]
                 yield type_(bsp_values, **bsp_attr)
+            elif type_ in [SUPEROBJ]:
+                f16_attrs = {'pointer': next(parse(tokens))}
+                yield type_(next(parse(tokens)), **f16_attrs)
             elif type_ in [LIST]:
                 yield type_(next(parse(tokens)))
             elif type_ in [DYNO]:
