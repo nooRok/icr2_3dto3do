@@ -1,7 +1,7 @@
 # coding: utf-8
 from icr2model.flavor import build_flavor
 from icr2model.flavor.flavor import VertexFlavor, F17
-from icr2model.flavor.value.unit import to_papy_degree
+from icr2model.flavor.value.unit import to_papy_angle
 from icr2model.flavor.value.values import BspValues
 from . import parser
 from .token import *
@@ -134,7 +134,7 @@ class Converter:
             f15_index = self.f15s.setdefault(f15_name, len(self.f15s))
             f15values = [*map(int, def_[:6])]
             loc = Value(f15values[:3]) * self.scaling_factor
-            rot = [to_papy_degree(x / 10.0) for x in f15values[3:7]]
+            rot = [to_papy_angle(x / 10.0) for x in f15values[3:7]]
             f15_v1 = loc + rot + [~f15_index]
             flavor = self.store_flavor(15, f15_v1)
             return flavor
