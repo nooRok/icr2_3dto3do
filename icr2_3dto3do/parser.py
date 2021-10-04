@@ -89,17 +89,22 @@ def parse(tokens):  # iterator
                 yield type_([next_], **mtl_attrs)
             elif type_ in [DYNAMIC]:
                 dyn = [*parse(tokens)]  # or range(9)
-                assert len(dyn) == 9
+                if len(dyn) != 9:
+                    raise ParsingError(f'Invalid DYNAMIC arguments length ({len(dyn)}/9): '
+                                       f'[{", ".join(dyn)}]')
                 dyn_attrs = {dyn[-2]: dyn[-1]}
                 yield type_(dyn[:7], **dyn_attrs)
             elif type_ in [SWITCH]:
-                assert next(tokens) == 'DISTANCE'
+                if next(tokens) != 'DISTANCE':
+                    raise ParsingError('A token following SWITCH must be DISTANCE')
                 swt_attrs = {'origin': next(parse(tokens))[0], 'symbol': next(tokens)}
                 swt_values = next(parse(tokens))
                 yield type_(swt_values, **swt_attrs)
             elif type_ in [FACE, BSPA, BSPF, BSPN, FACE2, BSP2]:
                 bsp_ = next(parse(tokens))
-                assert len(bsp_) == 3
+                if len(bsp_) != 3:
+                    raise ParsingError(f'Invalid {type_().name} arguments length ({len(bsp_)}/3): '
+                                       f'[{", ".join(bsp_)}]')
                 bsp_attr = {'bsp': bsp_}
                 bsp_values = [next(parse(tokens)) for _ in range(type_.size)]
                 yield type_(bsp_values, **bsp_attr)
