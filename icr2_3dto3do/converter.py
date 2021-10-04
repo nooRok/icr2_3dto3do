@@ -156,7 +156,12 @@ class Converter:
     def read_3d(cls, text: str):
         text_ = parser.clean_text(text)
         pairs = [parser.get_pair(s) for s in parser.split(text_)]
-        definitions = {k: next(parser.parse(iter(v))) for k, v in pairs}
+        definitions = {}
+        for k, v in pairs:
+            try:
+                definitions[k] = next(parser.parse(iter(v)))
+            except parser.ParsingError as e:
+                raise parser.ParsingError(f'({k}) {e}')
         color_items = [(k, v) for k, v in definitions.items()
                        if isinstance(v, Value) and v.attrs.get('c')]
         colors = {f'{k}.c': v.attrs['c'][0] for k, v in color_items}
