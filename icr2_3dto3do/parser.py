@@ -106,7 +106,12 @@ def parse(tokens):  # iterator
                     raise ParsingError(f'Invalid BSP normal arguments length ({len(bsp_)}/3): '
                                        f'[{", ".join(bsp_)}]')
                 bsp_attr = {'bsp': bsp_}
-                bsp_values = [next(parse(tokens)) for _ in range(type_.size)]
+                bsp_values = []
+                try:
+                    for _ in range(type_.size):
+                        bsp_values.append(next(parse(tokens)))
+                except StopIteration:
+                    raise ParsingError(f'Invalid {type_().name} arguments length ({len(bsp_values)}/{type_.size})')
                 yield type_(bsp_values, **bsp_attr)
             elif type_ in [SUPEROBJ]:
                 f16_attrs = {'pointer': next(parse(tokens))}
