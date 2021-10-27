@@ -75,6 +75,10 @@ def get_pair(text: str):
     return key, [*gen_tokens(value)]
 
 
+def is_sfn(filename: str):
+    return 0 < len(filename.strip('"')) <= 8
+
+
 def parse(tokens):  # iterator
     for token in tokens:
         type_ = _types.get(token)
