@@ -98,6 +98,9 @@ def parse(tokens):  # iterator
                         mtl_attrs[next_] = next(parse(tokens))
                     else:
                         break
+                mip_name = mtl_attrs.get('MIP', '')
+                if mip_name and not is_sfn(mip_name):
+                    raise FileNameLengthError(f'Invalid MIP filename length (max 8 characters): {mip_name}')
                 yield type_([next_], **mtl_attrs)
             elif type_ in [DYNAMIC]:
                 dyn = [*parse(tokens)]  # or range(9)
@@ -105,6 +108,9 @@ def parse(tokens):  # iterator
                     raise ArgumentsLengthError(f'Invalid DYNAMIC arguments length '
                                                f'({len(dyn)}/9): [{", ".join(dyn)}]')
                 dyn_attrs = {dyn[-2]: dyn[-1]}
+                dyn_name = dyn[-1]
+                if not is_sfn(dyn_name):
+                    raise FileNameLengthError(f'Invalid EXTERN filename length (max 8 characters): {dyn_name}')
                 yield type_(dyn[:7], **dyn_attrs)
             elif type_ in [SWITCH]:
                 if next(tokens) != 'DISTANCE':
