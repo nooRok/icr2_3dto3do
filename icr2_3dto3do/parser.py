@@ -28,6 +28,10 @@ class ParsingError(Exception):
     pass
 
 
+class ArgumentsLengthError(ParsingError):
+    pass
+
+
 def clean_text(text: str):  # rem header and comments
     rem_header = re.sub(r'^3D VERSION 3\.0.*', '', text)
     rem_comments = re.sub(r'^\s*%.*', '', rem_header, flags=re.MULTILINE)
