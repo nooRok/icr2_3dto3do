@@ -28,6 +28,14 @@ class ParsingError(Exception):
     pass
 
 
+class ArgumentsLengthError(ParsingError):
+    pass
+
+
+class FileNameLengthError(ParsingError):
+    pass
+
+
 def clean_text(text: str):  # rem header and comments
     rem_header = re.sub(r'^3D VERSION 3\.0.*', '', text)
     rem_comments = re.sub(r'^\s*%.*', '', rem_header, flags=re.MULTILINE)
@@ -67,6 +75,10 @@ def get_pair(text: str):
     return key, [*gen_tokens(value)]
 
 
+def is_sfn(filename: str):
+    return 0 < len(filename.strip('"')) <= 8
+
+
 def parse(tokens):  # iterator
     for token in tokens:
         type_ = _types.get(token)
@@ -86,13 +98,19 @@ def parse(tokens):  # iterator
                         mtl_attrs[next_] = next(parse(tokens))
                     else:
                         break
+                mip_name = mtl_attrs.get('MIP', '')
+                if mip_name and not is_sfn(mip_name):
+                    raise FileNameLengthError(f'Invalid MIP filename length (max 8 characters): {mip_name}')
                 yield type_([next_], **mtl_attrs)
             elif type_ in [DYNAMIC]:
                 dyn = [*parse(tokens)]  # or range(9)
                 if len(dyn) != 9:
-                    raise ParsingError(f'Invalid DYNAMIC arguments length ({len(dyn)}/9): '
-                                       f'[{", ".join(dyn)}]')
+                    raise ArgumentsLengthError(f'Invalid DYNAMIC arguments length '
+                                               f'({len(dyn)}/9): [{", ".join(dyn)}]')
                 dyn_attrs = {dyn[-2]: dyn[-1]}
+                dyn_name = dyn[-1]
+                if not is_sfn(dyn_name):
+                    raise FileNameLengthError(f'Invalid EXTERN filename length (max 8 characters): {dyn_name}')
                 yield type_(dyn[:7], **dyn_attrs)
             elif type_ in [SWITCH]:
                 if next(tokens) != 'DISTANCE':
@@ -103,15 +121,16 @@ def parse(tokens):  # iterator
             elif type_ in [FACE, BSPA, BSPF, BSPN, FACE2, BSP2]:
                 bsp_ = next(parse(tokens))
                 if len(bsp_) != 3:
-                    raise ParsingError(f'Invalid BSP normal arguments length ({len(bsp_)}/3): '
-                                       f'[{", ".join(bsp_)}]')
+                    raise ArgumentsLengthError(f'Invalid BSP normal arguments length '
+                                               f'({len(bsp_)}/3): [{", ".join(bsp_)}]')
                 bsp_attr = {'bsp': bsp_}
                 bsp_values = []
                 try:
                     for _ in range(type_.size):
                         bsp_values.append(next(parse(tokens)))
                 except StopIteration:
-                    raise ParsingError(f'Invalid {type_().name} arguments length ({len(bsp_values)}/{type_.size})')
+                    raise ArgumentsLengthError(f'Invalid {type_().name} arguments length '
+                                               f'({len(bsp_values)}/{type_.size})')
                 yield type_(bsp_values, **bsp_attr)
             elif type_ in [SUPEROBJ]:
                 f16_attrs = {'pointer': next(parse(tokens))}
