@@ -12,5 +12,8 @@ setup(
     python_requires='>=3.6',
     install_requires=[
         'icr2model @ git+https://github.com/nooRok/icr2model.git@master#egg=icr2model'
+    ],
+    scripts=[
+        'scripts/3d23do.py'
     ]
 )
