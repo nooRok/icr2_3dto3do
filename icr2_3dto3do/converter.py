@@ -13,6 +13,10 @@ _texture_flags = {0: 1,  # asphalt
                   3: 8}  # tso
 
 
+class DuplicatedDefinitionError(Exception):
+    pass
+
+
 class Converter:
     lod_divisor = 2
 
@@ -156,6 +160,8 @@ class Converter:
         pairs = [parser.get_pair(s) for s in parser.split(text_)]
         definitions = {}
         for k, v in pairs:
+            if k in definitions:
+                raise DuplicatedDefinitionError(f'"{k}" is already defined')
             try:
                 definitions[k] = next(parser.parse(iter(v)))
             except parser.ParsingError as e:
