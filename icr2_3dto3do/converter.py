@@ -32,8 +32,6 @@ class Converter:
     def store_flavor(self, type_: int, values1=None, values2=None):
         offset = max(self.flavors) + 1
         flavor = build_flavor(type_, offset, values1=values1, values2=values2)
-        if isinstance(flavor, VertexFlavor):
-            flavor.vtype = 2 if values2 else 1 if values1 else 0
         self.flavors[offset] = flavor
         return offset
 
