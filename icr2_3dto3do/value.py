@@ -5,8 +5,8 @@ class Value(list):
         self.attrs = {k.lower() if len(k) == 1 else k: v for k, v in kwargs.items()}
 
     def __mul__(self, other):
-        assert isinstance(other, float)
-        return self.__class__([int(x * other) for x in self], **self.attrs)
+        assert isinstance(other, (int, float))
+        return self.__class__([x * other for x in self], **self.attrs)
 
     def __imul__(self, other):
         self[:] = self * other

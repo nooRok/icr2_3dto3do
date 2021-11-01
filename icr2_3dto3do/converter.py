@@ -32,8 +32,6 @@ class Converter:
     def store_flavor(self, type_: int, values1=None, values2=None):
         offset = max(self.flavors) + 1
         flavor = build_flavor(type_, offset, values1=values1, values2=values2)
-        if isinstance(flavor, VertexFlavor):
-            flavor.vtype = 2 if values2 else 1 if values1 else 0
         self.flavors[offset] = flavor
         return offset
 
@@ -61,7 +59,7 @@ class Converter:
             vtx_v2 = [self._store_vertex_flavor(vtx, vtx.attrs.get('t')) for vtx in vertices]
             color_name = def_.attrs['color_name']
             color_idx = self._get_value(color_name)
-            vtx_v1 = [color_idx if isinstance(color_idx, int) else color_idx[0], len(vtx_v2) - 1]
+            vtx_v1 = [color_idx if isinstance(color_idx, (int, float)) else color_idx[0], len(vtx_v2) - 1]
             type_ = 2 if def_.attrs.get('t') else 1
             if type_ == 2:
                 # name = attrs['MIP']  # from MATERIAL MIP = "xxx"

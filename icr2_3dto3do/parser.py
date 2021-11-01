@@ -142,7 +142,7 @@ def parse(tokens):  # iterator
             elif type_ in [DATA]:
                 yield type_(next(parse(tokens)))
         elif token in '<':
-            yield [*map(int, parse(tokens))]
+            yield [*map(float, parse(tokens))]
         elif token in '[':
             values = [*parse(tokens)]
             pairs = zip(values[1:][::2], values[1:][1::2])
