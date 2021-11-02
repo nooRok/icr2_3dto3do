@@ -107,6 +107,13 @@ def parse(tokens):  # iterator
                 if mip_name and not is_sfn(mip_name):
                     raise FileNameLengthError(f'Invalid MIP filename length (max 8 characters): {mip_name}')
                 yield type_([next_], **mtl_attrs)
+            elif type_ in [GROUP]:  # MATERIAL sub func
+                yield type_([next(parse(tokens))])
+            elif type_ in [MIP]:  # MATERIAL sub func
+                mip_name = next(parse(tokens))
+                if not is_sfn(mip_name):
+                    raise FileNameLengthError(f'Invalid MIP filename length (max 8 characters): {mip_name}')
+                yield type_([mip_name])
             elif type_ in [DYNAMIC]:
                 dyn = [*parse(tokens)]  # or range(9)
                 if len(dyn) != 9:
