@@ -20,7 +20,9 @@ _types = {
     'LINE': LINE,
     'MATERIAL': MATERIAL,
     'DYNAMIC': DYNAMIC,
-    'SUPEROBJ': SUPEROBJ
+    'SUPEROBJ': SUPEROBJ,
+    'GROUP': GROUP,
+    'MIP': MIP
 }
 
 
@@ -96,17 +98,12 @@ def parse(tokens):  # iterator
                 poly_attrs = {'t': ['T'] in poly, 'color_name': poly[-1]}
                 yield type_(poly_value, **poly_attrs)
             elif type_ in [MATERIAL]:
-                mtl_attrs = {}
-                while True:
-                    next_ = next(parse(tokens))
-                    if next_ in ['GROUP', 'MIP']:  # MATERIAL attrs
-                        mtl_attrs[next_] = next(parse(tokens))
-                    else:
-                        break
-                mip_name = mtl_attrs.get('MIP', '')
-                if mip_name and not is_sfn(mip_name):
-                    raise FileNameLengthError(f'Invalid MIP filename length (max 8 characters): {mip_name}')
-                yield type_([next_], **mtl_attrs)
+                mtl = [next(parse(tokens)) for _ in range(2)]  # [GROUP, MIP] or [GROUP|MIP, MATERIAL]
+                if isinstance(mtl[-1], (GROUP, MIP)):
+                    mtl.append(next(parse(tokens)))
+                mtl_value = mtl.pop()
+                mtl_attrs = dict(map(to_attr_pair, mtl))
+                yield type_([mtl_value], **mtl_attrs)
             elif type_ in [GROUP]:  # MATERIAL sub func
                 yield type_([next(parse(tokens))])
             elif type_ in [MIP]:  # MATERIAL sub func
