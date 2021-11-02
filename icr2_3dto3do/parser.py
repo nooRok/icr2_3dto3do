@@ -87,9 +87,9 @@ def parse(tokens):  # iterator
                 yield type_()
             elif type_ in [POLY, LINE]:
                 poly = [*parse(tokens)]
-                attrs_ = poly[:-1]
-                poly_attrs = {'t': ['T'] in attrs_, 'color_name': attrs_[-1]}
-                yield type_(poly[-1], **poly_attrs)
+                poly_value = poly.pop()
+                poly_attrs = {'t': ['T'] in poly, 'color_name': poly[-1]}
+                yield type_(poly_value, **poly_attrs)
             elif type_ in [MATERIAL]:
                 mtl_attrs = {}
                 while True:
