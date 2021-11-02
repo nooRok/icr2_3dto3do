@@ -22,7 +22,8 @@ _types = {
     'DYNAMIC': DYNAMIC,
     'SUPEROBJ': SUPEROBJ,
     'GROUP': GROUP,
-    'MIP': MIP
+    'MIP': MIP,
+    'EXTERN': EXTERN
 }
 
 
@@ -112,15 +113,12 @@ def parse(tokens):  # iterator
                     raise FileNameLengthError(f'Invalid MIP filename length (max 8 characters): {mip_name}')
                 yield type_([mip_name])
             elif type_ in [DYNAMIC]:
-                dyn = [*parse(tokens)]  # or range(9)
-                if len(dyn) != 9:
+                dyn = [*parse(tokens)]
+                if len(dyn) != 8:
                     raise ArgumentsLengthError(f'Invalid DYNAMIC arguments length '
-                                               f'({len(dyn)}/9): [{", ".join(dyn)}]')
-                dyn_attrs = {dyn[-2]: dyn[-1]}
-                dyn_name = dyn[-1]
-                if not is_sfn(dyn_name):
-                    raise FileNameLengthError(f'Invalid EXTERN filename length (max 8 characters): {dyn_name}')
-                yield type_(dyn[:7], **dyn_attrs)
+                                               f'({len(dyn)}/8): [{", ".join(map(str, dyn))}]')
+                dyn_attrs = dict([to_attr_pair(dyn.pop())])
+                yield type_(dyn, **dyn_attrs)
             elif type_ in [EXTERN]:  # DYNAMIC sub func
                 ext_name = next(parse(tokens))
                 if not is_sfn(ext_name):
