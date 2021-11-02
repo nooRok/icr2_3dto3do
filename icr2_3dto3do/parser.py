@@ -130,6 +130,10 @@ def parse(tokens):  # iterator
                 swt_attrs = {'origin': next(parse(tokens))[0], 'symbol': next(tokens)}
                 swt_values = next(parse(tokens))
                 yield type_(swt_values, **swt_attrs)
+            elif type_ in [DISTANCE]:  # DISTANCE sub func
+                dst_attrs = {'origin': next(parse(tokens))[0], 'symbol': next(tokens)}
+                dst_values = next(parse(tokens))
+                yield type_(dst_values, **dst_attrs)
             elif type_ in [FACE, BSPA, BSPF, BSPN, FACE2, BSP2]:
                 bsp_ = next(parse(tokens))
                 if len(bsp_) != 3:
