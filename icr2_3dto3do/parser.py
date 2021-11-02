@@ -144,10 +144,10 @@ def parse(tokens):  # iterator
         elif token in '<':
             yield [*map(float, parse(tokens))]
         elif token in '[':
-            values = [*parse(tokens)]
-            pairs = zip(values[1:][::2], values[1:][1::2])
-            attrs = {k: v for k, v in pairs}
-            yield Value(values[0], **attrs)
+            val = [*parse(tokens)]
+            value = val.pop(0)
+            attrs = {k: v for k, v in zip(val[::2], val[1::2])}
+            yield Value(value, **attrs)
         elif token in '({':
             yield [*parse(tokens)]
             if token == '{':
