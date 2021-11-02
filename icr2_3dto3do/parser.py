@@ -135,11 +135,7 @@ def parse(tokens):  # iterator
             elif type_ in [SUPEROBJ]:
                 f16_attrs = {'pointer': next(parse(tokens))}
                 yield type_(next(parse(tokens)), **f16_attrs)
-            elif type_ in [LIST]:
-                yield type_(next(parse(tokens)))
-            elif type_ in [DYNO]:
-                yield type_(next(parse(tokens)))
-            elif type_ in [DATA]:
+            elif type_ in [LIST, DYNO, DATA]:
                 yield type_(next(parse(tokens)))
         elif token in '<':
             yield [*map(float, parse(tokens))]
