@@ -121,6 +121,11 @@ def parse(tokens):  # iterator
                 if not is_sfn(dyn_name):
                     raise FileNameLengthError(f'Invalid EXTERN filename length (max 8 characters): {dyn_name}')
                 yield type_(dyn[:7], **dyn_attrs)
+            elif type_ in [EXTERN]:  # DYNAMIC sub func
+                ext_name = next(parse(tokens))
+                if not is_sfn(ext_name):
+                    raise FileNameLengthError(f'Invalid EXTERN filename length (max 8 characters): {ext_name}')
+                yield type_([ext_name])
             elif type_ in [SWITCH]:
                 if next(tokens) != 'DISTANCE':
                     raise ParsingError('A token following SWITCH must be DISTANCE')
