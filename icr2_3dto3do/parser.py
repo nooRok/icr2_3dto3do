@@ -23,7 +23,8 @@ _types = {
     'SUPEROBJ': SUPEROBJ,
     'GROUP': GROUP,
     'MIP': MIP,
-    'EXTERN': EXTERN
+    'EXTERN': EXTERN,
+    'DISTANCE': DISTANCE
 }
 
 
@@ -125,10 +126,11 @@ def parse(tokens):  # iterator
                     raise FileNameLengthError(f'Invalid EXTERN filename length (max 8 characters): {ext_name}')
                 yield type_([ext_name])
             elif type_ in [SWITCH]:
-                if next(tokens) != 'DISTANCE':
+                dst = next(parse(tokens))  # DISTANCE object
+                if not isinstance(dst, DISTANCE):
                     raise ParsingError('A token following SWITCH must be DISTANCE')
-                swt_attrs = {'origin': next(parse(tokens))[0], 'symbol': next(tokens)}
-                swt_values = next(parse(tokens))
+                swt_values = [*dst]
+                swt_attrs = {'distance': [*dst], **dst.attrs}
                 yield type_(swt_values, **swt_attrs)
             elif type_ in [DISTANCE]:  # DISTANCE sub func
                 dst_attrs = {'origin': next(parse(tokens))[0], 'symbol': next(tokens)}
