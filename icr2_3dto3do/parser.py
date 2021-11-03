@@ -79,6 +79,11 @@ def is_sfn(filename: str):
     return 0 < len(filename.strip('"')) <= 8
 
 
+def to_attr_pair(t: Token):
+    assert len(t) == 1
+    return t.name, t[0]
+
+
 def parse(tokens):  # iterator
     for token in tokens:
         type_ = _types.get(token)
