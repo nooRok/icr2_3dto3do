@@ -155,12 +155,12 @@ class Converter:
                 '3do': [n.strip('"') for n, _ in sorted(self.f15s.items(), key=lambda x: x[1])]}
 
     @classmethod
-    def read_3d(cls, text: str):
+    def read_3d(cls, text: str, allow_duplicate=False):
         text_ = parser.clean_text(text)
         pairs = [parser.get_pair(s) for s in parser.split(text_)]
         definitions = {}
         for k, v in pairs:
-            if k in definitions:
+            if k in definitions and not allow_duplicate:
                 raise DuplicatedDefinitionError(f'"{k}" is already defined')
             try:
                 definitions[k] = next(parser.parse(iter(v)))
@@ -175,7 +175,7 @@ class Converter:
         return cls(definitions)
 
     @classmethod
-    def open_3d(cls, path: str):
+    def open_3d(cls, path: str, allow_duplicate=False):
         with open(path) as f:
             text = f.read()
-        return cls.read_3d(text)
+        return cls.read_3d(text, allow_duplicate)
