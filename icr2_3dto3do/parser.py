@@ -33,11 +33,15 @@ class ParsingError(Exception):
 
 
 class ArgumentsLengthError(ParsingError):
-    pass
+    @classmethod
+    def make(cls, msg):
+        return cls(f'Invalid arguments length: {msg}')
 
 
 class FileNameLengthError(ParsingError):
-    pass
+    @classmethod
+    def make(cls, msg):
+        return cls(f'Invalid filename length (max 8 characters): {msg}')
 
 
 def clean_text(text: str):  # rem header and comments
