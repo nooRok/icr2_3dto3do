@@ -120,8 +120,7 @@ def parse(tokens):  # iterator
             elif type_ in [DYNAMIC]:
                 dyn = [*parse(tokens)]
                 if len(dyn) != 8:
-                    raise ArgumentsLengthError(f'Invalid DYNAMIC arguments length '
-                                               f'({len(dyn)}/8): [{", ".join(map(str, dyn))}]')
+                    raise ArgumentsLengthError.make(f'{type_(dyn)} ({len(dyn)}/8)')
                 dyn_attrs = dict([to_attr_pair(dyn.pop())])
                 yield type_(dyn, **dyn_attrs)
             elif type_ in [EXTERN]:  # DYNAMIC sub func
@@ -143,16 +142,15 @@ def parse(tokens):  # iterator
             elif type_ in [FACE, BSPA, BSPF, BSPN, FACE2, BSP2]:
                 bsp_ = next(parse(tokens))
                 if len(bsp_) != 3:
-                    raise ArgumentsLengthError(f'Invalid BSP normal arguments length '
-                                               f'({len(bsp_)}/3): [{", ".join(bsp_)}]')
+                    raise ArgumentsLengthError.make(
+                        f'BSP normal ({", ".join(map(str, bsp_))}) ({len(bsp_)}/3)')
                 bsp_attr = {'bsp': bsp_}
                 bsp_values = []
                 try:
                     for _ in range(type_.size):
                         bsp_values.append(next(parse(tokens)))
                 except StopIteration:
-                    raise ArgumentsLengthError(f'Invalid {type_().name} arguments length '
-                                               f'({len(bsp_values)}/{type_.size})')
+                    raise ArgumentsLengthError.make(f'{type_(bsp_values)} ({len(bsp_values)}/{type_.size})')
                 yield type_(bsp_values, **bsp_attr)
             elif type_ in [SUPEROBJ]:
                 f16_attrs = {'pointer': next(parse(tokens))}
