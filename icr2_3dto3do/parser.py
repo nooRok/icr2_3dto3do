@@ -115,7 +115,7 @@ def parse(tokens):  # iterator
             elif type_ in [MIP]:  # MATERIAL sub func
                 mip_name = next(parse(tokens))
                 if not is_sfn(mip_name):
-                    raise FileNameLengthError(f'Invalid MIP filename length (max 8 characters): {mip_name}')
+                    raise FileNameLengthError.make(type_([mip_name]))
                 yield type_([mip_name])
             elif type_ in [DYNAMIC]:
                 dyn = [*parse(tokens)]
@@ -126,7 +126,7 @@ def parse(tokens):  # iterator
             elif type_ in [EXTERN]:  # DYNAMIC sub func
                 ext_name = next(parse(tokens))
                 if not is_sfn(ext_name):
-                    raise FileNameLengthError(f'Invalid EXTERN filename length (max 8 characters): {ext_name}')
+                    raise FileNameLengthError.make(type_([ext_name]))
                 yield type_([ext_name])
             elif type_ in [SWITCH]:
                 dst = next(parse(tokens))  # DISTANCE object
