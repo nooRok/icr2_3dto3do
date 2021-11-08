@@ -9,7 +9,7 @@ class Token(list):
         return self.__class__.__name__
 
     def __str__(self):
-        return f'{self.name} {{ {", ".join(map(str, self))} }}'
+        return f'({self.name}: {{{", ".join(map(str, self))}}})'
 
     def __bool__(self):
         return True

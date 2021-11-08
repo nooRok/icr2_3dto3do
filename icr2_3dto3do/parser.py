@@ -87,9 +87,9 @@ def parse(tokens):  # iterator
                 yield type_()
             elif type_ in [POLY, LINE]:
                 poly = [*parse(tokens)]
-                attrs_ = poly[:-1]
-                poly_attrs = {'t': ['T'] in attrs_, 'color_name': attrs_[-1]}
-                yield type_(poly[-1], **poly_attrs)
+                poly_value = poly.pop()
+                poly_attrs = {'t': ['T'] in poly, 'color_name': poly[-1]}
+                yield type_(poly_value, **poly_attrs)
             elif type_ in [MATERIAL]:
                 mtl_attrs = {}
                 while True:
@@ -135,19 +135,15 @@ def parse(tokens):  # iterator
             elif type_ in [SUPEROBJ]:
                 f16_attrs = {'pointer': next(parse(tokens))}
                 yield type_(next(parse(tokens)), **f16_attrs)
-            elif type_ in [LIST]:
-                yield type_(next(parse(tokens)))
-            elif type_ in [DYNO]:
-                yield type_(next(parse(tokens)))
-            elif type_ in [DATA]:
+            elif type_ in [LIST, DYNO, DATA]:
                 yield type_(next(parse(tokens)))
         elif token in '<':
             yield [*map(float, parse(tokens))]
         elif token in '[':
-            values = [*parse(tokens)]
-            pairs = zip(values[1:][::2], values[1:][1::2])
-            attrs = {k: v for k, v in pairs}
-            yield Value(values[0], **attrs)
+            val = [*parse(tokens)]
+            value = val.pop(0)
+            attrs = {k: v for k, v in zip(val[::2], val[1::2])}
+            yield Value(value, **attrs)
         elif token in '({':
             yield [*parse(tokens)]
             if token == '{':
