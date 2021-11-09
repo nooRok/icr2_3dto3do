@@ -24,6 +24,7 @@ The script 3d23do.py requires 3 arguments: `input`, `root` and `output`.
 * `--scale n`: Value n for to scale output object. the value must be integer (default: 1).
 * `--no-opt`: Skip 3do optimization process (see below section). Reducing conversion time in exchange for increasing file size.
 * `--silent`: Disable console output.
+* `--allow-dup`: Allow duplicate definition name.
 
 ## 3do optimization
 
