@@ -20,7 +20,11 @@ _types = {
     'LINE': LINE,
     'MATERIAL': MATERIAL,
     'DYNAMIC': DYNAMIC,
-    'SUPEROBJ': SUPEROBJ
+    'SUPEROBJ': SUPEROBJ,
+    'GROUP': GROUP,
+    'MIP': MIP,
+    'EXTERN': EXTERN,
+    'DISTANCE': DISTANCE
 }
 
 
@@ -79,6 +83,11 @@ def is_sfn(filename: str):
     return 0 < len(filename.strip('"')) <= 8
 
 
+def to_attr_pair(t: Token):
+    assert len(t) == 1
+    return t.name, t[0]
+
+
 def parse(tokens):  # iterator
     for token in tokens:
         type_ = _types.get(token)
@@ -91,33 +100,42 @@ def parse(tokens):  # iterator
                 poly_attrs = {'t': ['T'] in poly, 'color_name': poly[-1]}
                 yield type_(poly_value, **poly_attrs)
             elif type_ in [MATERIAL]:
-                mtl_attrs = {}
-                while True:
-                    next_ = next(parse(tokens))
-                    if next_ in ['GROUP', 'MIP']:  # MATERIAL attrs
-                        mtl_attrs[next_] = next(parse(tokens))
-                    else:
-                        break
-                mip_name = mtl_attrs.get('MIP', '')
-                if mip_name and not is_sfn(mip_name):
+                mtl = [next(parse(tokens)) for _ in range(2)]  # [GROUP, MIP] or [GROUP|MIP, MATERIAL]
+                if isinstance(mtl[-1], (GROUP, MIP)):
+                    mtl.append(next(parse(tokens)))
+                mtl_value = mtl.pop()
+                mtl_attrs = dict(map(to_attr_pair, mtl))
+                yield type_([mtl_value], **mtl_attrs)
+            elif type_ in [GROUP]:  # MATERIAL sub func
+                yield type_([next(parse(tokens))])
+            elif type_ in [MIP]:  # MATERIAL sub func
+                mip_name = next(parse(tokens))
+                if not is_sfn(mip_name):
                     raise FileNameLengthError(f'Invalid MIP filename length (max 8 characters): {mip_name}')
-                yield type_([next_], **mtl_attrs)
+                yield type_([mip_name])
             elif type_ in [DYNAMIC]:
-                dyn = [*parse(tokens)]  # or range(9)
-                if len(dyn) != 9:
+                dyn = [*parse(tokens)]
+                if len(dyn) != 8:
                     raise ArgumentsLengthError(f'Invalid DYNAMIC arguments length '
-                                               f'({len(dyn)}/9): [{", ".join(dyn)}]')
-                dyn_attrs = {dyn[-2]: dyn[-1]}
-                dyn_name = dyn[-1]
-                if not is_sfn(dyn_name):
-                    raise FileNameLengthError(f'Invalid EXTERN filename length (max 8 characters): {dyn_name}')
-                yield type_(dyn[:7], **dyn_attrs)
+                                               f'({len(dyn)}/8): [{", ".join(map(str, dyn))}]')
+                dyn_attrs = dict([to_attr_pair(dyn.pop())])
+                yield type_(dyn, **dyn_attrs)
+            elif type_ in [EXTERN]:  # DYNAMIC sub func
+                ext_name = next(parse(tokens))
+                if not is_sfn(ext_name):
+                    raise FileNameLengthError(f'Invalid EXTERN filename length (max 8 characters): {ext_name}')
+                yield type_([ext_name])
             elif type_ in [SWITCH]:
-                if next(tokens) != 'DISTANCE':
+                dst = next(parse(tokens))  # DISTANCE object
+                if not isinstance(dst, DISTANCE):
                     raise ParsingError('A token following SWITCH must be DISTANCE')
-                swt_attrs = {'origin': next(parse(tokens))[0], 'symbol': next(tokens)}
-                swt_values = next(parse(tokens))
+                swt_values = [*dst]
+                swt_attrs = {'distance': [*dst], **dst.attrs}
                 yield type_(swt_values, **swt_attrs)
+            elif type_ in [DISTANCE]:  # DISTANCE sub func
+                dst_attrs = {'origin': next(parse(tokens))[0], 'symbol': next(tokens)}
+                dst_values = next(parse(tokens))
+                yield type_(dst_values, **dst_attrs)
             elif type_ in [FACE, BSPA, BSPF, BSPN, FACE2, BSP2]:
                 bsp_ = next(parse(tokens))
                 if len(bsp_) != 3:

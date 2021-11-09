@@ -88,3 +88,19 @@ class DATA(Token):  # F17/track hash
 
 class DYNAMIC(Token):  # F15
     pass
+
+
+class DISTANCE(Token):  # F13 values
+    pass
+
+
+class GROUP(Token):  # F02 texture type
+    pass
+
+
+class MIP(Token):  # F04 filename
+    pass
+
+
+class EXTERN(Token):  # F15 filename
+    pass
